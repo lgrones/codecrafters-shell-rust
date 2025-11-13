@@ -1,4 +1,4 @@
-use std::{any::Any, env, error::Error, fs};
+use std::{any::Any, env, error::Error, fs, path::PathBuf};
 
 use is_executable::IsExecutable;
 
@@ -33,7 +33,7 @@ pub fn create_command(command: &str) -> Box<dyn Command> {
     }
 }
 
-pub fn search_path(name: &str) -> Option<std::path::PathBuf> {
+pub fn search_path(name: &str) -> Option<PathBuf> {
     env::var_os("PATH")
         .into_iter() // Option<OsString> -> iterator with 0 or 1 element
         .flat_map(|os| env::split_paths(&os).collect::<Vec<_>>())
