@@ -1,23 +1,30 @@
-use std::error::Error;
+use std::{any::Any, error::Error};
 
-use crate::commands::{echo::Echo, exit::Exit, noop::Noop};
+use crate::commands::{echo::Echo, exit::Exit, noop::Noop, r#type::Type};
 
 mod echo;
 mod exit;
 mod noop;
+mod r#type;
 
 pub trait Command {
     fn execute(&self) -> Result<(), Box<dyn Error>>;
+    fn as_any(&self) -> &dyn Any;
 }
 
-pub fn evaluate_command(command: &str) -> Result<(), String> {
-    let parts: Vec<&str> = command.trim().split_whitespace().collect();
+pub trait Factory {
+    fn new(args: Vec<String>) -> impl Command;
+}
 
-    let cmd: Box<dyn Command> = match parts.as_slice() {
-        ["exit", args @ ..] => Box::new(Exit::new(args)),
-        ["echo", args @ ..] => Box::new(Echo::new(args)),
-        [args @ ..] => Box::new(Noop::new(args)),
-    };
+pub fn create_command(command: &str) -> Box<dyn Command> {
+    let mut parts = command.trim().split_whitespace();
+    let name: &str = parts.next().unwrap_or("empty");
+    let args: Vec<String> = parts.map(|s| s.to_string()).collect();
 
-    cmd.execute().map_err(|x| x.to_string())
+    match name {
+        "echo" => Box::new(Echo::new(args)),
+        "exit" => Box::new(Exit::new(args)),
+        "type" => Box::new(Type::new(args)),
+        _ => Box::new(Noop::new(args)),
+    }
 }

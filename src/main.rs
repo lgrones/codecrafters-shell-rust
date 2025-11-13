@@ -13,6 +13,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         command.clear();
         io::stdin().read_line(&mut command)?;
 
-        commands::evaluate_command(&command)?;
+        commands::create_command(&command).execute()?;
     }
 }

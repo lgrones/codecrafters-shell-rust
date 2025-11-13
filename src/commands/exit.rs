@@ -1,17 +1,17 @@
-use std::{error::Error, process::exit};
+use std::{any::Any, error::Error, process::exit};
 
-use crate::commands::Command;
+use crate::commands::{Command, Factory};
 
 pub struct Exit {
     code: i32,
 }
 
-impl Exit {
-    pub fn new(args: &[&str]) -> Self {
+impl Factory for Exit {
+    fn new(args: Vec<String>) -> impl Command {
         Exit {
             code: args
                 .get(0)
-                .unwrap_or(&"0")
+                .unwrap_or(&String::from("0"))
                 .parse::<i32>()
                 .unwrap_or_default(),
         }
@@ -21,5 +21,9 @@ impl Exit {
 impl Command for Exit {
     fn execute(&self) -> Result<(), Box<dyn Error>> {
         exit(self.code)
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

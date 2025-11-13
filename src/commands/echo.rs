@@ -1,20 +1,26 @@
-use crate::commands::Command;
+use std::any::Any;
+
+use crate::commands::{Command, Factory};
 
 pub struct Echo {
-    args: Vec<String>,
+    args: String,
 }
 
-impl Echo {
-    pub fn new(args: &[&str]) -> Self {
+impl Factory for Echo {
+    fn new(args: Vec<String>) -> impl Command {
         Echo {
-            args: args.into_iter().map(|x| x.to_string()).collect(),
+            args: args.join(" "),
         }
     }
 }
 
 impl Command for Echo {
     fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
-        println!("{}", self.args.join(" "));
+        println!("{}", self.args);
         Ok(())
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
