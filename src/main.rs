@@ -3,12 +3,14 @@ use std::error::Error;
 use std::io::{self, Write};
 
 fn main() -> Result<(), Box<dyn Error>> {
-    print!("$ ");
-    io::stdout().flush().unwrap();
+    loop {
+        print!("$ ");
+        io::stdout().flush()?;
 
-    let mut command = String::new();
-    io::stdin().read_line(&mut command)?;
-    println!("{}: command not found", command.trim());
+        let mut command = String::new();
+        io::stdin().read_line(&mut command)?;
+        println!("{}: command not found", command.trim());
+    }
 
     Ok(())
 }
