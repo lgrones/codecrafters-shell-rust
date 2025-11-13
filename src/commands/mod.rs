@@ -25,6 +25,6 @@ pub fn create_command(command: &str) -> Box<dyn Command> {
         "echo" => Box::new(Echo::new(args)),
         "exit" => Box::new(Exit::new(args)),
         "type" => Box::new(Type::new(args)),
-        _ => Box::new(Noop::new(args)),
+        _ => Box::new(Noop::new(vec![name.to_string()])),
     }
 }
