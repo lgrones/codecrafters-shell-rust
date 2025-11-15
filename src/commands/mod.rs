@@ -26,17 +26,22 @@ trait SplitArgs {
 
 impl SplitArgs for &str {
     fn get_args(&self) -> (String, Vec<String>) {
+        let quotes = ['\'', '"'];
         let mut result = vec![];
-        let mut quoted = false;
+        let mut quote = None;
         let mut arg = vec![];
 
         for char in self.trim().chars() {
-            if char == '\'' {
-                quoted = !quoted;
+            if quotes.contains(&char) && quote.is_none_or(|x| x == char) {
+                quote = match quote {
+                    Some(_) => None,
+                    None => Some(char),
+                };
+
                 continue;
             }
 
-            if quoted || char != ' ' {
+            if quote.is_some() || char != ' ' {
                 arg.push(char);
                 continue;
             }
