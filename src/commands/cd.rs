@@ -1,4 +1,8 @@
-use std::{any::Any, env::set_current_dir};
+use std::{
+    any::Any,
+    env::set_current_dir,
+    path::{self, Path, PathBuf},
+};
 
 use crate::commands::{Command, Factory};
 
@@ -17,8 +21,12 @@ impl Factory for Cd {
 impl Command for Cd {
     fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
         if !self.path.is_empty() {
-            set_current_dir(self.path.clone());
-            return Ok(());
+            let p = PathBuf::from(&self.path);
+
+            if p.is_dir() {
+                set_current_dir(p)?;
+                return Ok(());
+            }
         }
 
         println!("cd: {}: No such file or directory", self.path);
