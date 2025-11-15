@@ -43,9 +43,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             [b'[', b' ', b'B', ..] => println!("Down arrow"),
             // Any other char
             _ => {
-                let c = buf[0] as char;
-                command.push(c);
-                print!("{}", c);
+                command.push(buf[0] as char);
+                // Clear current line and reprint prompt + buffer
+                print!("\r> {}", command);
                 io::stdout().flush()?;
             }
         }
