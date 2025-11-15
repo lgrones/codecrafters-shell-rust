@@ -17,11 +17,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         let output = commands::create_command(&command).execute();
 
         if let Some(out) = output.stdout {
-            println!("{out}");
+            println!("{}", out.trim_end_matches("\n"));
         }
 
         if let Some(out) = output.stderr {
-            println!("{out}");
+            println!("{}", out.trim_end_matches("\n"));
         }
     }
 }

@@ -64,9 +64,7 @@ impl Command for Run {
 }
 
 fn to_option(s: Vec<u8>) -> Option<String> {
-    let s = String::from_utf8_lossy(&s)
-        .trim_end_matches('\n')
-        .to_string();
+    let s = String::from_utf8_lossy(&s).to_string();
 
     if s.is_empty() {
         None
