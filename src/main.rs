@@ -45,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             _ => {
                 command.push(buf[0] as char);
                 // Clear current line and reprint prompt + buffer
-                print!("\r> {}", command);
+                print!("\r$ {}", command);
                 io::stdout().flush()?;
             }
         }
