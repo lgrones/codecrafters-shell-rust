@@ -47,6 +47,12 @@ impl SplitArgs for &str {
                 continue;
             }
 
+            if quote.is_some_and(|x| x == char) && escaped {
+                arg.push(char);
+                escaped = false;
+                continue;
+            }
+
             if quote.is_some() || escaped || char != ' ' {
                 arg.push(char);
                 escaped = false;
