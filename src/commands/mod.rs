@@ -29,6 +29,7 @@ impl SplitArgs for &str {
         let quotes = ['\'', '"'];
         let mut result = vec![];
         let mut quote = None;
+        let mut escaped = false;
         let mut arg = vec![];
 
         for char in self.trim().chars() {
@@ -41,7 +42,12 @@ impl SplitArgs for &str {
                 continue;
             }
 
-            if quote.is_some() || char != ' ' {
+            if quote.is_none() && char == '\\' {
+                escaped = true;
+                continue;
+            }
+
+            if quote.is_some() || escaped || char != ' ' {
                 arg.push(char);
                 continue;
             }
