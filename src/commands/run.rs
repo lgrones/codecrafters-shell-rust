@@ -1,4 +1,9 @@
-use std::{any::Any, error::Error, process};
+use std::{
+    any::Any,
+    error::Error,
+    fmt::Display,
+    process::{self, Stdio},
+};
 
 use crate::{
     commands::{Command, Factory},
@@ -8,6 +13,12 @@ use crate::{
 pub struct Run {
     name: String,
     args: Vec<String>,
+}
+
+impl Display for Run {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Run")
+    }
 }
 
 impl Factory for Run {
@@ -24,7 +35,11 @@ impl Factory for Run {
 impl Command for Run {
     fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
         if let Some(_) = search_path(&self.name) {
-            let process = process::Command::new(&self.name).args(&self.args).spawn()?;
+            let process = process::Command::new(&self.name)
+                .args(&self.args)
+                .stdout(Stdio::piped()) // capture stdout
+                .stderr(Stdio::piped())
+                .spawn()?;
             let output = process.wait_with_output()?;
             let result = format!(
                 "{}",

@@ -1,4 +1,4 @@
-use std::{any::Any, error::Error};
+use std::{any::Any, error::Error, fmt::Display};
 
 use crate::{
     commands::{
@@ -15,7 +15,7 @@ pub(crate) mod redirect;
 mod run;
 mod r#type;
 
-pub trait Command {
+pub trait Command: Display {
     fn execute(&self) -> Result<Option<String>, Box<dyn Error>>;
     fn as_any(&self) -> &dyn Any;
 }

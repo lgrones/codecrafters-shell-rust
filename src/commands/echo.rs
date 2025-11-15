@@ -1,9 +1,15 @@
-use std::any::Any;
+use std::{any::Any, fmt::Display};
 
 use crate::commands::{Command, Factory};
 
 pub struct Echo {
     args: String,
+}
+
+impl Display for Echo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Echo")
+    }
 }
 
 impl Factory for Echo {

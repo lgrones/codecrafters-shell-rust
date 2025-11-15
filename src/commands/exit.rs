@@ -1,9 +1,15 @@
-use std::{any::Any, error::Error, process::exit};
+use std::{any::Any, error::Error, fmt::Display, process::exit};
 
 use crate::commands::{Command, Factory};
 
 pub struct Exit {
     code: i32,
+}
+
+impl Display for Exit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Exit")
+    }
 }
 
 impl Factory for Exit {

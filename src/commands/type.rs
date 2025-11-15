@@ -1,4 +1,4 @@
-use std::{any::Any, error::Error};
+use std::{any::Any, error::Error, fmt::Display};
 
 use crate::{
     commands::{create_command, run::Run, Command, Factory},
@@ -7,6 +7,12 @@ use crate::{
 
 pub struct Type {
     name: String,
+}
+
+impl Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Type")
+    }
 }
 
 impl Factory for Type {

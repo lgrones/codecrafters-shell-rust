@@ -1,6 +1,7 @@
 use std::{
     any::Any,
     env::{self, set_current_dir},
+    fmt::Display,
     path::PathBuf,
 };
 
@@ -8,6 +9,12 @@ use crate::commands::{Command, Factory};
 
 pub struct Cd {
     path: String,
+}
+
+impl Display for Cd {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Cd")
+    }
 }
 
 impl Factory for Cd {

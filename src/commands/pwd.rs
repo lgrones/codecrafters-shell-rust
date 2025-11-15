@@ -1,8 +1,14 @@
-use std::{any::Any, env::current_dir};
+use std::{any::Any, env::current_dir, fmt::Display};
 
 use crate::commands::{Command, Factory};
 
 pub struct Pwd {}
+
+impl Display for Pwd {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Pwd")
+    }
+}
 
 impl Factory for Pwd {
     fn new(_: Vec<String>) -> impl Command {

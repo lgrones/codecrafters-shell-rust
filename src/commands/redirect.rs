@@ -1,5 +1,6 @@
 use std::{
     any::Any,
+    fmt::Display,
     fs::{create_dir_all, File},
     io::{Error, ErrorKind, Write},
     path::Path,
@@ -24,6 +25,12 @@ impl RedirectFrom {
 pub struct Redirect {
     command: Box<dyn Command>,
     file: String,
+}
+
+impl Display for Redirect {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Redirect")
+    }
 }
 
 impl Redirect {
