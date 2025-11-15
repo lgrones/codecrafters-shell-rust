@@ -20,20 +20,48 @@ pub trait Factory {
     fn new(args: Vec<String>) -> impl Command;
 }
 
-pub fn create_command(command: &str) -> Box<dyn Command> {
-    let mut parts = command.trim().split_whitespace();
-    let name: &str = parts.next().unwrap_or("empty");
-    let args: Vec<String> = parts.map(|s| s.to_string()).collect();
+trait SplitArgs {
+    fn get_args(&self) -> (String, Vec<String>);
+}
 
-    match name {
+impl SplitArgs for &str {
+    fn get_args(&self) -> (String, Vec<String>) {
+        let mut result = vec![];
+        let mut quoted = false;
+        let mut arg = vec![];
+
+        for char in self.trim().chars() {
+            if char == '\'' {
+                quoted = !quoted;
+                continue;
+            }
+
+            if quoted || char != ' ' {
+                arg.push(char);
+                continue;
+            }
+
+            result.push(arg.iter().collect::<String>());
+            arg.clear();
+        }
+
+        result.push(arg.iter().collect::<String>());
+        let mut iter = result.into_iter();
+
+        (iter.next().unwrap_or(String::new()), iter.collect())
+    }
+}
+
+pub fn create_command(command: &str) -> Box<dyn Command> {
+    let (name, args) = command.get_args();
+
+    match name.as_str() {
         "cd" => Box::new(Cd::new(args)),
         "echo" => Box::new(Echo::new(args)),
         "exit" => Box::new(Exit::new(args)),
         "pwd" => Box::new(Pwd::new(args)),
         "type" => Box::new(Type::new(args)),
-        _ => Box::new(Run::new(
-            vec![name.to_string()].into_iter().chain(args).collect(),
-        )),
+        _ => Box::new(Run::new(vec![name].into_iter().chain(args).collect())),
     }
 }
 
