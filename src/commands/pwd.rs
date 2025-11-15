@@ -11,9 +11,9 @@ impl Factory for Pwd {
 }
 
 impl Command for Pwd {
-    fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
-        println!("{}", current_dir()?.to_str().unwrap_or("unknown wd"));
-        Ok(())
+    fn execute(&self) -> Result<Option<String>, Box<dyn std::error::Error>> {
+        let result = current_dir()?.to_str().unwrap_or("unknown wd").to_string();
+        Ok(Some(result))
     }
 
     fn as_any(&self) -> &dyn Any {

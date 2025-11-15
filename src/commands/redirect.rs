@@ -2,21 +2,22 @@ use std::any::Any;
 
 use crate::commands::{Command, Factory};
 
-pub struct Echo {
+pub struct Redirect {
     args: String,
 }
 
-impl Factory for Echo {
+impl Factory for Redirect {
     fn new(args: Vec<String>) -> impl Command {
-        Echo {
+        Redirect {
             args: args.join(" "),
         }
     }
 }
 
-impl Command for Echo {
+impl Command for Redirect {
     fn execute(&self) -> Result<Option<String>, Box<dyn std::error::Error>> {
-        Ok(Some(self.args.clone()))
+        println!("{}", self.args);
+        Ok(None)
     }
 
     fn as_any(&self) -> &dyn Any {

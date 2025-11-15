@@ -27,16 +27,16 @@ impl Factory for Cd {
 }
 
 impl Command for Cd {
-    fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn execute(&self) -> Result<Option<String>, Box<dyn std::error::Error>> {
         let path_buf = PathBuf::from(&self.path);
 
         if self.path.is_empty() || !path_buf.is_dir() {
-            println!("cd: {}: No such file or directory", self.path);
-            return Ok(());
+            let result = format!("cd: {}: No such file or directory", self.path);
+            return Ok(Some(result));
         }
 
         set_current_dir(path_buf)?;
-        Ok(())
+        Ok(None)
     }
 
     fn as_any(&self) -> &dyn Any {

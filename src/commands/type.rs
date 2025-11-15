@@ -1,6 +1,9 @@
 use std::{any::Any, error::Error};
 
-use crate::commands::{create_command, run::Run, search_path, Command, Factory};
+use crate::{
+    commands::{create_command, run::Run, Command, Factory},
+    helper::search_path,
+};
 
 pub struct Type {
     name: String,
@@ -15,21 +18,21 @@ impl Factory for Type {
 }
 
 impl Command for Type {
-    fn execute(&self) -> Result<(), Box<dyn Error>> {
+    fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
         let command = create_command(&self.name);
 
         if !command.as_any().is::<Run>() {
-            println!("{} is a shell builtin", self.name);
-            return Ok(());
+            let result = format!("{} is a shell builtin", self.name);
+            return Ok(Some(result));
         }
 
         if let Some(path) = search_path(&self.name) {
-            println!("{} is {}", self.name, path.to_string_lossy());
-            return Ok(());
+            let result = format!("{} is {}", self.name, path.to_string_lossy());
+            return Ok(Some(result));
         }
 
-        println!("{}: not found", self.name);
-        Ok(())
+        let result = format!("{}: not found", self.name);
+        Ok(Some(result))
     }
 
     fn as_any(&self) -> &dyn Any {

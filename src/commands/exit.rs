@@ -19,7 +19,7 @@ impl Factory for Exit {
 }
 
 impl Command for Exit {
-    fn execute(&self) -> Result<(), Box<dyn Error>> {
+    fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
         exit(self.code)
     }
 

@@ -2,6 +2,7 @@ use std::error::Error;
 use std::io::{self, Write};
 
 mod commands;
+mod helper;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut command = String::new();
@@ -13,6 +14,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         command.clear();
         io::stdin().read_line(&mut command)?;
 
-        commands::create_command(&command).execute()?;
+        let output = commands::create_command(&command).execute()?;
+
+        if let Some(out) = output {
+            println!("{out}");
+        }
     }
 }
