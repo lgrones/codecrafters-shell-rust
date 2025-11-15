@@ -42,7 +42,10 @@ impl Command for Redirect {
             CaptureFrom::Stderr => (output.stderr, output.stdout),
         };
 
-        let result = write_file(Path::new(&self.file), &out.unwrap_or_default());
+        let result = write_file(
+            Path::new(&self.file),
+            &out.map(|x| x + "\n").unwrap_or_default(),
+        );
 
         Output {
             stdout: other,
