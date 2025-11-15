@@ -1,4 +1,4 @@
-use std::{any::Any, error::Error, fmt::Display, process::exit};
+use std::{any::Any, fmt::Display, process::exit};
 
 use crate::commands::{Command, Factory};
 
@@ -25,7 +25,7 @@ impl Factory for Exit {
 }
 
 impl Command for Exit {
-    fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
+    fn execute(&self) -> Result<Option<String>, String> {
         exit(self.code)
     }
 

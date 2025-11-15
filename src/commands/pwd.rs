@@ -17,8 +17,13 @@ impl Factory for Pwd {
 }
 
 impl Command for Pwd {
-    fn execute(&self) -> Result<Option<String>, Box<dyn std::error::Error>> {
-        let result = current_dir()?.to_str().unwrap_or("unknown wd").to_string();
+    fn execute(&self) -> Result<Option<String>, String> {
+        let result = current_dir()
+            .map_err(|x| x.to_string())?
+            .to_str()
+            .unwrap_or("unknown wd")
+            .to_string();
+
         Ok(Some(result))
     }
 

@@ -34,7 +34,7 @@ impl Factory for Cd {
 }
 
 impl Command for Cd {
-    fn execute(&self) -> Result<Option<String>, Box<dyn std::error::Error>> {
+    fn execute(&self) -> Result<Option<String>, String> {
         let path_buf = PathBuf::from(&self.path);
 
         if self.path.is_empty() || !path_buf.is_dir() {
@@ -42,7 +42,7 @@ impl Command for Cd {
             return Ok(Some(result));
         }
 
-        set_current_dir(path_buf)?;
+        set_current_dir(path_buf).map_err(|x| x.to_string())?;
         Ok(None)
     }
 

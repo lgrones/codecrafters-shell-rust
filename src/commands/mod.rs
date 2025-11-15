@@ -1,4 +1,4 @@
-use std::{any::Any, error::Error, fmt::Display};
+use std::{any::Any, fmt::Display};
 
 use crate::{
     commands::{
@@ -16,7 +16,7 @@ mod run;
 mod r#type;
 
 pub trait Command: Display {
-    fn execute(&self) -> Result<Option<String>, Box<dyn Error>>;
+    fn execute(&self) -> Result<Option<String>, String>;
     fn as_any(&self) -> &dyn Any;
 }
 
@@ -25,7 +25,7 @@ pub trait Factory {
 }
 
 pub fn create_command(command: &str) -> Box<dyn Command> {
-    let (name, args, redirect, redirect_args) = command.get_args();
+    let (name, args, redirect_from, redirect_args) = command.get_args();
 
     let command = match name.as_str() {
         "cd" => Box::new(Cd::new(args)) as Box<dyn Command>,
@@ -36,9 +36,13 @@ pub fn create_command(command: &str) -> Box<dyn Command> {
         _ => Box::new(Run::new(vec![name].into_iter().chain(args).collect())),
     };
 
-    if redirect.is_none() {
+    if redirect_from.is_none() {
         return command;
     }
 
-    Box::new(Redirect::new(command, redirect_args))
+    Box::new(Redirect::new(
+        command,
+        redirect_from.unwrap(),
+        redirect_args,
+    ))
 }

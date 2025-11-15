@@ -1,4 +1,4 @@
-use std::{any::Any, error::Error, fmt::Display};
+use std::{any::Any, fmt::Display};
 
 use crate::{
     commands::{create_command, run::Run, Command, Factory},
@@ -24,7 +24,7 @@ impl Factory for Type {
 }
 
 impl Command for Type {
-    fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
+    fn execute(&self) -> Result<Option<String>, String> {
         let command = create_command(&self.name);
 
         if !command.as_any().is::<Run>() {

@@ -1,6 +1,5 @@
 use std::{
     any::Any,
-    error::Error,
     fmt::Display,
     process::{self, Stdio},
 };
@@ -33,23 +32,39 @@ impl Factory for Run {
 }
 
 impl Command for Run {
-    fn execute(&self) -> Result<Option<String>, Box<dyn Error>> {
+    fn execute(&self) -> Result<Option<String>, String> {
         if let Some(_) = search_path(&self.name) {
             let process = process::Command::new(&self.name)
                 .args(&self.args)
                 .stdout(Stdio::piped()) // capture stdout
                 .stderr(Stdio::piped())
-                .spawn()?;
-            let output = process.wait_with_output()?;
-            let result = format!(
-                "{}",
-                String::from_utf8(output.stdout)?.trim_end_matches('\n')
-            );
-            return Ok(Some(result));
+                .spawn()
+                .map_err(|x| x.to_string())?;
+
+            let output = process.wait_with_output().map_err(|x| x.to_string())?;
+            if output.status.success() {
+                let result = format!(
+                    "{}",
+                    String::from_utf8(output.stdout)
+                        .map_err(|x| x.to_string())?
+                        .trim_end_matches('\n')
+                );
+
+                return Ok(Some(result));
+            } else {
+                let result = format!(
+                    "{}",
+                    String::from_utf8(output.stderr)
+                        .map_err(|x| x.to_string())?
+                        .trim_end_matches('\n')
+                );
+
+                return Err(result);
+            };
         }
 
         let result = format!("{}: command not found", self.name);
-        Ok(Some(result))
+        Err(result)
     }
 
     fn as_any(&self) -> &dyn Any {

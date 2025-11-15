@@ -21,7 +21,7 @@ impl Factory for Echo {
 }
 
 impl Command for Echo {
-    fn execute(&self) -> Result<Option<String>, Box<dyn std::error::Error>> {
+    fn execute(&self) -> Result<Option<String>, String> {
         Ok(Some(self.args.clone()))
     }
 
