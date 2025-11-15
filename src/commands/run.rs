@@ -23,7 +23,7 @@ impl Command for Run {
         if let Some(_) = search_path(&self.name) {
             let process = process::Command::new(&self.name).args(&self.args).spawn()?;
             let output = process.wait_with_output()?;
-            print!("{}", String::from_utf8(output.stdout)?.trim());
+            print!("{}", String::from_utf8(output.stdout)?);
             return Ok(());
         }
 
