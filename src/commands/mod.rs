@@ -27,6 +27,7 @@ trait SplitArgs {
 impl SplitArgs for &str {
     fn get_args(&self) -> (String, Vec<String>) {
         let quotes = ['\'', '"'];
+        let escape = '\\';
         let mut result = vec![];
         let mut arg = vec![];
         let mut quote = None;
@@ -42,13 +43,13 @@ impl SplitArgs for &str {
                 continue;
             }
 
-            if !escaped && char == '\\' {
+            if !escaped && char == escape {
                 escaped = true;
                 continue;
             }
 
-            if quote.is_some_and(|x| x != char) && escaped {
-                arg.push('\\');
+            if quote.is_some_and(|x| x != char) && char != escape && escaped {
+                arg.push(escape);
                 arg.push(char);
                 escaped = false;
                 continue;
