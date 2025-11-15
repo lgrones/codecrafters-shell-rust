@@ -1,7 +1,7 @@
 use std::{
     any::Any,
     fmt::Display,
-    fs::{create_dir_all, File},
+    fs::{create_dir_all, OpenOptions},
     io::Write,
     path::Path,
 };
@@ -11,21 +11,21 @@ use crate::{
     helper::CaptureFrom,
 };
 
-pub struct Redirect {
+pub struct Append {
     command: Box<dyn Command>,
     capture_from: CaptureFrom,
     file: String,
 }
 
-impl Display for Redirect {
+impl Display for Append {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Redirect")
+        write!(f, "Append")
     }
 }
 
-impl Redirect {
+impl Append {
     pub fn new(command: Box<dyn Command>, capture_from: CaptureFrom, file: String) -> impl Command {
-        Redirect {
+        Append {
             command,
             capture_from,
             file,
@@ -33,7 +33,7 @@ impl Redirect {
     }
 }
 
-impl Command for Redirect {
+impl Command for Append {
     fn execute(&self) -> Output {
         let output = self.command.execute();
 
@@ -60,6 +60,12 @@ fn write_file(path: &Path, content: &str) -> std::io::Result<()> {
         create_dir_all(parent)?;
     }
 
-    File::create(path)?.write_all(content.as_bytes())?;
+    let mut file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .append(true)
+        .open(path)?;
+
+    file.write_all(content.as_bytes())?;
     Ok(())
 }

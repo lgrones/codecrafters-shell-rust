@@ -2,25 +2,86 @@ use std::{env, fs, path::PathBuf};
 
 use is_executable::IsExecutable;
 
-use crate::commands::redirect::RedirectFrom;
+#[derive(PartialEq)]
+pub enum CaptureFrom {
+    Stdout = 1,
+    Stderr = 2,
+}
+
+impl CaptureFrom {
+    pub fn from_digit(c: &char) -> Self {
+        match c.to_digit(10) {
+            Some(2) => Self::Stderr,
+            _ => Self::Stdout,
+        }
+    }
+}
+
+#[derive(PartialEq)]
+pub enum RedirectType {
+    Redirect {
+        capture_from: CaptureFrom,
+        file: String,
+    },
+    Append {
+        capture_from: CaptureFrom,
+        file: String,
+    },
+    None,
+}
+
+pub fn get_redirects(args: &mut Vec<String>) -> RedirectType {
+    let index = args.iter().position(|x| x.ends_with(">"));
+
+    if index.is_none() {
+        return RedirectType::None;
+    }
+
+    let redirect_args = args.split_off(index.unwrap());
+
+    let (command, rest) = redirect_args.split_first().unwrap();
+
+    if command.ends_with(">>") {
+        return RedirectType::Append {
+            capture_from: CaptureFrom::from_digit(&command.chars().next().unwrap()),
+            file: rest[0].to_string(),
+        };
+    }
+
+    RedirectType::Redirect {
+        capture_from: CaptureFrom::from_digit(&command.chars().next().unwrap()),
+        file: rest[0].to_string(),
+    }
+}
+
+pub struct Params {
+    pub name: String,
+    pub args: Vec<String>,
+}
 
 pub trait SplitArgs {
-    fn get_args(&self) -> (String, Vec<String>, Option<RedirectFrom>, Vec<String>);
+    const QUOTES: [char; 2];
+    const ESCAPE: char;
+    fn get_args(&self) -> Params;
 }
 
 impl SplitArgs for &str {
+    const QUOTES: [char; 2] = ['\'', '"'];
+    const ESCAPE: char = '\\';
+
     // Yes, this is a tokenizer
     // No, don't ask me how in the fuck this works
-    fn get_args(&self) -> (String, Vec<String>, Option<RedirectFrom>, Vec<String>) {
-        let quotes = ['\'', '"'];
-        let escape = '\\';
+    fn get_args(&self) -> Params {
         let mut args = vec![];
         let mut arg = vec![];
         let mut quote = None;
         let mut escaped = false;
 
         for char in self.trim().chars() {
-            if !escaped && quotes.contains(&char) && quote.is_none_or(|x| x == char) {
+            if !escaped
+                && <&str as SplitArgs>::QUOTES.contains(&char)
+                && quote.is_none_or(|x| x == char)
+            {
                 quote = match quote {
                     Some(_) => None,
                     None => Some(char),
@@ -29,13 +90,13 @@ impl SplitArgs for &str {
                 continue;
             }
 
-            if !escaped && char == escape {
+            if !escaped && char == <&str as SplitArgs>::ESCAPE {
                 escaped = true;
                 continue;
             }
 
-            if quote.is_some_and(|x| x != char) && char != escape && escaped {
-                arg.push(escape);
+            if quote.is_some_and(|x| x != char) && char != <&str as SplitArgs>::ESCAPE && escaped {
+                arg.push(<&str as SplitArgs>::ESCAPE);
                 arg.push(char);
                 escaped = false;
                 continue;
@@ -52,36 +113,13 @@ impl SplitArgs for &str {
         }
 
         args.push(arg.iter().collect::<String>());
-        let iter = args.iter();
 
-        let redirect_option = iter.enumerate().find_map(|(i, x)| {
-            if x.ends_with(">") {
-                return Some((RedirectFrom::from_digit(&x.chars().next().unwrap()), i));
-            }
+        let mut iter = args.into_iter();
 
-            None
-        });
-
-        let mut redirect_args = vec![];
-        let mut redirect = None;
-
-        if let Some((r, index)) = redirect_option {
-            let split = args.as_slice().split_at(index);
-
-            redirect_args = split.1.into_iter().skip(1).map(|x| x.to_string()).collect();
-            args = split.0.into_iter().map(|x| x.to_string()).collect();
-
-            redirect = Some(r);
+        Params {
+            name: iter.next().unwrap_or(String::new()),
+            args: iter.filter(|x| !x.trim().is_empty()).collect(),
         }
-
-        let mut result_iter = args.into_iter();
-
-        (
-            result_iter.next().unwrap_or(String::new()),
-            result_iter.filter(|x| !x.trim().is_empty()).collect(),
-            redirect,
-            redirect_args,
-        )
     }
 }
 

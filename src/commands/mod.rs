@@ -2,16 +2,18 @@ use std::{any::Any, fmt::Display};
 
 use crate::{
     commands::{
-        cd::Cd, echo::Echo, exit::Exit, pwd::Pwd, r#type::Type, redirect::Redirect, run::Run,
+        append::Append, cd::Cd, echo::Echo, exit::Exit, pwd::Pwd, r#type::Type, redirect::Redirect,
+        run::Run,
     },
-    helper::SplitArgs,
+    helper::{get_redirects, Params, RedirectType, SplitArgs},
 };
 
+mod append;
 mod cd;
 mod echo;
 mod exit;
 mod pwd;
-pub(crate) mod redirect;
+mod redirect;
 mod run;
 mod r#type;
 
@@ -53,7 +55,8 @@ pub trait Factory {
 }
 
 pub fn create_command(command: &str) -> Box<dyn Command> {
-    let (name, args, redirect_from, redirect_args) = command.get_args();
+    let Params { name, mut args } = command.get_args();
+    let redirect = get_redirects(&mut args);
 
     let command = match name.as_str() {
         "cd" => Box::new(Cd::new(args)) as Box<dyn Command>,
@@ -64,13 +67,13 @@ pub fn create_command(command: &str) -> Box<dyn Command> {
         _ => Box::new(Run::new(vec![name].into_iter().chain(args).collect())),
     };
 
-    if redirect_from.is_none() {
-        return command;
+    match redirect {
+        RedirectType::Redirect { capture_from, file } => {
+            Box::new(Redirect::new(command, capture_from, file))
+        }
+        RedirectType::Append { capture_from, file } => {
+            Box::new(Append::new(command, capture_from, file))
+        }
+        RedirectType::None => command,
     }
-
-    Box::new(Redirect::new(
-        command,
-        redirect_from.unwrap(),
-        redirect_args,
-    ))
 }
