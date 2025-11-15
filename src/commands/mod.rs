@@ -28,9 +28,9 @@ impl SplitArgs for &str {
     fn get_args(&self) -> (String, Vec<String>) {
         let quotes = ['\'', '"'];
         let mut result = vec![];
+        let mut arg = vec![];
         let mut quote = None;
         let mut escaped = false;
-        let mut arg = vec![];
 
         for char in self.trim().chars() {
             if !escaped && quotes.contains(&char) && quote.is_none_or(|x| x == char) {
@@ -47,7 +47,7 @@ impl SplitArgs for &str {
                 continue;
             }
 
-            if quote.is_some_and(|x| !quotes.contains(&x)) && escaped {
+            if quote.is_some_and(|x| x == char) && escaped {
                 arg.push('\\');
                 arg.push(char);
                 escaped = false;
