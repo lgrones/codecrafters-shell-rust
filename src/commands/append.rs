@@ -44,7 +44,8 @@ impl Command for Append {
 
         let result = write_file(
             Path::new(&self.file),
-            &out.map(|x| x + "\n").unwrap_or_default(),
+            &out.map(|x| if x.ends_with("\n") { x } else { x + "\n" })
+                .unwrap_or_default(),
         );
 
         Output {
