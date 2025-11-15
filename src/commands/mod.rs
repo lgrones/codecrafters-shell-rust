@@ -42,7 +42,7 @@ impl SplitArgs for &str {
                 continue;
             }
 
-            if quote.is_none() && char == '\\' {
+            if char == '\\' {
                 escaped = true;
                 continue;
             }
