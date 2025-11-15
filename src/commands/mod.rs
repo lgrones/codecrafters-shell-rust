@@ -33,7 +33,7 @@ impl SplitArgs for &str {
         let mut arg = vec![];
 
         for char in self.trim().chars() {
-            if quotes.contains(&char) && quote.is_none_or(|x| x == char) {
+            if !escaped && quotes.contains(&char) && quote.is_none_or(|x| x == char) {
                 quote = match quote {
                     Some(_) => None,
                     None => Some(char),
