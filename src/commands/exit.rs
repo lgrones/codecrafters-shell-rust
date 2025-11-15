@@ -1,4 +1,4 @@
-use std::{any::Any, fmt::Display};
+use std::{any::Any, fmt::Display, process::exit};
 
 use crate::commands::{Command, Factory, Output};
 
@@ -26,7 +26,7 @@ impl Factory for Exit {
 
 impl Command for Exit {
     fn execute(&self) -> Output {
-        Output::exit(self.code)
+        exit(self.code)
     }
 
     fn as_any(&self) -> &dyn Any {

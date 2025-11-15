@@ -1,71 +1,67 @@
+use reedline::{
+    default_emacs_keybindings, ColumnarMenu, DefaultCompleter, DefaultPrompt, DefaultPromptSegment,
+    Emacs, KeyCode, KeyModifiers, MenuBuilder, Reedline, ReedlineEvent, ReedlineMenu, Signal,
+};
 use std::error::Error;
-use std::io::{self, Read, Write};
-use std::os::fd::AsRawFd;
-use std::process::exit;
-
-use crate::commands::Output;
-use crate::raw_terminal::RawTerminal;
 
 mod commands;
 mod helper;
-mod raw_terminal;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let stdin = io::stdin();
-    let fd = stdin.as_raw_fd();
+    let commands = vec![
+        "test".into(),
+        "hello world".into(),
+        "hello world reedline".into(),
+        "this is the reedline crate".into(),
+    ];
 
-    let mut command = String::new();
-    let mut buf = [0u8; 8];
-    let terminal = RawTerminal::new(fd);
+    let completer = Box::new(DefaultCompleter::new(commands.clone()));
 
-    print!("$ ");
-    io::stdout().flush()?;
+    let completion_menu = Box::new(ColumnarMenu::default().with_name("completion_menu"));
+
+    let mut keybindings = default_emacs_keybindings();
+    keybindings.add_binding(
+        KeyModifiers::NONE,
+        KeyCode::Tab,
+        ReedlineEvent::UntilFound(vec![
+            ReedlineEvent::Menu("completion_menu".to_string()),
+            ReedlineEvent::MenuNext,
+        ]),
+    );
+
+    let edit_mode = Box::new(Emacs::new(keybindings));
+
+    let mut editor = Reedline::create()
+        .with_completer(completer)
+        .with_menu(ReedlineMenu::EngineCompleter(completion_menu))
+        .with_edit_mode(edit_mode);
+
+    let prompt = DefaultPrompt::new(
+        DefaultPromptSegment::Basic(String::from("$ ")),
+        DefaultPromptSegment::Empty,
+    );
 
     loop {
-        stdin.lock().read(&mut buf)?;
+        match editor.read_line(&prompt) {
+            Ok(Signal::Success(command)) => {
+                let output = commands::create_command(&command).execute();
 
-        match &buf[..] {
-            // Enter key
-            [b'\n', ..] | [b'\r', ..] => {
-                println!("");
-                let output = execute(&mut command)?;
+                if let Some(out) = output.stdout {
+                    println!("{}", out.trim_end_matches("\n"));
+                }
 
-                if output.exit_requested {
-                    terminal.restore();
-                    exit(output.exit_code.unwrap_or_default());
+                if let Some(out) = output.stderr {
+                    println!("{}", out.trim_end_matches("\n"));
                 }
             }
-            // Tab key
-            [b'\t', ..] => println!("Tab pressed"),
-            // Up arrow, Escape sequence: [ A
-            [b'[', b' ', b'A', ..] => println!("Up arrow"),
-            // Down arrow, Escape sequence: [ B
-            [b'[', b' ', b'B', ..] => println!("Down arrow"),
-            // Any other char
-            _ => {
-                command.push(buf[0] as char);
-                // Clear current line and reprint prompt + buffer
-                print!("\r$ {}", command);
-                io::stdout().flush()?;
+            Ok(Signal::CtrlD) | Ok(Signal::CtrlC) => {
+                break;
+            }
+            x => {
+                x?;
             }
         }
     }
-}
 
-fn execute(command: &mut String) -> io::Result<Output> {
-    let output = commands::create_command(command).execute();
-
-    if let Some(ref out) = output.stdout {
-        println!("{}", out.trim_end_matches("\n"));
-    }
-
-    if let Some(ref out) = output.stderr {
-        println!("{}", out.trim_end_matches("\n"));
-    }
-
-    command.clear();
-    print!("$ ");
-    io::stdout().flush()?;
-
-    Ok(output)
+    Ok(())
 }
