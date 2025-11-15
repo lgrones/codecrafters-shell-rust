@@ -2,8 +2,9 @@ use std::{any::Any, env, error::Error, fs, path::PathBuf};
 
 use is_executable::IsExecutable;
 
-use crate::commands::{echo::Echo, exit::Exit, pwd::Pwd, r#type::Type, run::Run};
+use crate::commands::{cd::Cd, echo::Echo, exit::Exit, pwd::Pwd, r#type::Type, run::Run};
 
+mod cd;
 mod echo;
 mod exit;
 mod pwd;
@@ -25,6 +26,7 @@ pub fn create_command(command: &str) -> Box<dyn Command> {
     let args: Vec<String> = parts.map(|s| s.to_string()).collect();
 
     match name {
+        "cd" => Box::new(Cd::new(args)),
         "echo" => Box::new(Echo::new(args)),
         "exit" => Box::new(Exit::new(args)),
         "pwd" => Box::new(Pwd::new(args)),
