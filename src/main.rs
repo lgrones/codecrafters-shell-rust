@@ -1,29 +1,104 @@
-use std::{
-    error::Error,
-    io::{self, Write},
+use crossterm::{
+    event::{self, Event, KeyCode, KeyEvent},
+    terminal::{disable_raw_mode, enable_raw_mode},
 };
+use std::io::{self, Write};
 
 mod commands;
 mod helper;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> io::Result<()> {
+    enable_raw_mode()?;
+
     let mut command = String::new();
 
+    print!("$ ");
+    io::stdout().flush()?;
+
     loop {
-        print!("$ ");
-        io::stdout().flush()?;
+        if let Ok(event) = event::read() {
+            match event {
+                Event::Paste(text) => {
+                    command.push_str(&text);
+                    print!("{}", text);
+                    io::stdout().flush()?;
+                }
 
-        command.clear();
-        io::stdin().read_line(&mut command)?;
+                Event::Key(KeyEvent { code, .. }) => match code {
+                    KeyCode::Tab => {
+                        println!("\r\n[Tab completion triggered for: '{}']\r\n", command);
+                    }
 
-        let output = commands::create_command(&command).execute();
+                    KeyCode::Up => {
+                        println!("\r\n[Up triggered for: '{}']\r\n", command);
+                        io::stdout().flush()?;
+                    }
 
-        if let Some(out) = output.stdout {
-            println!("{}", out.trim_end_matches("\n"));
-        }
+                    KeyCode::Down => {
+                        println!("\r\n[Down triggered for: '{}']\r\n", command);
+                        io::stdout().flush()?;
+                    }
 
-        if let Some(out) = output.stderr {
-            println!("{}", out.trim_end_matches("\n"));
+                    KeyCode::Enter => {
+                        print!("\r\n");
+
+                        let output = commands::create_command(&command).execute();
+
+                        if let Some(out) = output.stdout {
+                            println!("{}", out.trim_end_matches("\n"));
+                        }
+
+                        if let Some(out) = output.stderr {
+                            println!("{}", out.trim_end_matches("\n"));
+                        }
+
+                        command.clear();
+                        print!("\r$ ");
+                        io::stdout().flush()?;
+                    }
+
+                    KeyCode::Char(c) => {
+                        command.push(c);
+                        print!("{}", c);
+                        io::stdout().flush()?;
+                    }
+
+                    KeyCode::Backspace => {
+                        if !command.is_empty() {
+                            command.pop();
+                            print!("\x08 \x08");
+                            io::stdout().flush()?;
+                        }
+                    }
+                    _ => {}
+                },
+                _ => {}
+            }
         }
     }
+
+    disable_raw_mode()?;
+    Ok(())
 }
+
+// fn main() -> Result<(), Box<dyn Error>> {
+//     let mut command = String::new();
+
+//     loop {
+//         print!("$ ");
+//         io::stdout().flush()?;
+
+//         command.clear();
+//         io::stdin().read_line(&mut command)?;
+
+//         let output = commands::create_command(&command).execute();
+
+//         if let Some(out) = output.stdout {
+//             println!("{}", out.trim_end_matches("\n"));
+//         }
+
+//         if let Some(out) = output.stderr {
+//             println!("{}", out.trim_end_matches("\n"));
+//         }
+//     }
+// }
