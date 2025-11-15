@@ -42,13 +42,14 @@ impl SplitArgs for &str {
                 continue;
             }
 
-            if char == '\\' {
+            if !escaped && char == '\\' {
                 escaped = true;
                 continue;
             }
 
             if quote.is_some() || escaped || char != ' ' {
                 arg.push(char);
+                escaped = false;
                 continue;
             }
 
