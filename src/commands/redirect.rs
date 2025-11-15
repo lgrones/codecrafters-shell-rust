@@ -1,22 +1,57 @@
-use std::any::Any;
+use std::{
+    any::Any,
+    fs::{create_dir_all, File},
+    io::{Error, ErrorKind, Write},
+    path::Path,
+};
 
-use crate::commands::{Command, Factory};
+use crate::commands::Command;
 
-pub struct Redirect {
-    args: String,
+pub enum RedirectFrom {
+    Stdout = 1,
+    Stderr = 2,
 }
 
-impl Factory for Redirect {
-    fn new(args: Vec<String>) -> impl Command {
+impl RedirectFrom {
+    pub fn from_digit(c: &char) -> Self {
+        match c.to_digit(10) {
+            Some(2) => Self::Stderr,
+            _ => Self::Stdout,
+        }
+    }
+}
+
+pub struct Redirect {
+    command: Box<dyn Command>,
+    file: String,
+}
+
+impl Redirect {
+    pub fn new(command: Box<dyn Command>, args: Vec<String>) -> impl Command {
         Redirect {
-            args: args.join(" "),
+            command,
+            file: args.get(0).unwrap_or(&String::new()).to_string(),
         }
     }
 }
 
 impl Command for Redirect {
     fn execute(&self) -> Result<Option<String>, Box<dyn std::error::Error>> {
-        println!("{}", self.args);
+        let output = self.command.execute()?;
+
+        if output.is_none() {
+            return Err(Box::new(Error::new(
+                ErrorKind::InvalidInput,
+                "Cannot redirect empty output",
+            )));
+        }
+
+        let path = Path::new(&self.file);
+        create_dir_all(path.parent().unwrap_or(Path::new("")))?;
+
+        let mut file = File::create(path)?;
+        file.write_all(output.unwrap().as_bytes())?;
+
         Ok(None)
     }
 
