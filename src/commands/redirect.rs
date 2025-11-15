@@ -57,17 +57,12 @@ impl Command for Redirect {
             RedirectFrom::Stderr => (output.stderr, output.stdout),
         };
 
-        if let Some(content) = out {
-            return write_file(Path::new(&self.file), &content)
-                .map(|_| Output::none())
-                .unwrap_or_else(|e| Output::err(e.to_string()));
-        }
+        let result = write_file(Path::new(&self.file), &out.unwrap_or_default());
 
-        if let Some(msg) = other {
-            return Output::ok(msg);
+        Output {
+            stdout: other,
+            stderr: result.map(|_| None).unwrap_or_else(|e| Some(e.to_string())),
         }
-
-        Output::none()
     }
 
     fn as_any(&self) -> &dyn Any {
