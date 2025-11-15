@@ -48,7 +48,10 @@ impl SplitArgs for &str {
         result.push(arg.iter().collect::<String>());
         let mut iter = result.into_iter();
 
-        (iter.next().unwrap_or(String::new()), iter.collect())
+        (
+            iter.next().unwrap_or(String::new()),
+            iter.filter(|x| !x.trim().is_empty()).collect(),
+        )
     }
 }
 
