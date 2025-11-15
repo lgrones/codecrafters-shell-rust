@@ -1,7 +1,7 @@
 use std::{
     any::Any,
-    env::set_current_dir,
-    path::{self, Path, PathBuf},
+    env::{self, set_current_dir},
+    path::PathBuf,
 };
 
 use crate::commands::{Command, Factory};
@@ -12,24 +12,30 @@ pub struct Cd {
 
 impl Factory for Cd {
     fn new(args: Vec<String>) -> impl Command {
-        Cd {
-            path: args.get(0).unwrap_or(&String::new()).to_string(),
+        let mut path = args.get(0).unwrap_or(&String::new()).to_string();
+
+        if path == "~" {
+            path = env::var_os("HOME")
+                .unwrap_or_default()
+                .to_str()
+                .unwrap_or_default()
+                .to_string()
         }
+
+        Cd { path }
     }
 }
 
 impl Command for Cd {
     fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
-        if !self.path.is_empty() {
-            let p = PathBuf::from(&self.path);
+        let path_buf = PathBuf::from(&self.path);
 
-            if p.is_dir() {
-                set_current_dir(p)?;
-                return Ok(());
-            }
+        if self.path.is_empty() || !path_buf.is_dir() {
+            println!("cd: {}: No such file or directory", self.path);
+            return Ok(());
         }
 
-        println!("cd: {}: No such file or directory", self.path);
+        set_current_dir(path_buf)?;
         Ok(())
     }
 
