@@ -20,6 +20,7 @@ mod r#type;
 pub struct Output {
     pub stdout: Option<String>,
     pub stderr: Option<String>,
+    pub exit_code: Option<i32>,
 }
 
 impl Output {
@@ -27,6 +28,7 @@ impl Output {
         Output {
             stdout: None,
             stderr: None,
+            exit_code: None,
         }
     }
 
@@ -34,6 +36,7 @@ impl Output {
         Output {
             stdout: Some(msg.to_string()),
             stderr: None,
+            exit_code: None,
         }
     }
 
@@ -41,6 +44,7 @@ impl Output {
         Output {
             stdout: None,
             stderr: Some(msg.to_string()),
+            exit_code: None,
         }
     }
 
@@ -48,6 +52,15 @@ impl Output {
         Output {
             stdout: out,
             stderr: err,
+            exit_code: None,
+        }
+    }
+
+    pub fn exit(code: i32) -> Self {
+        Output {
+            stdout: None,
+            stderr: None,
+            exit_code: Some(code),
         }
     }
 }

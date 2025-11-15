@@ -2,7 +2,10 @@ use crossterm::{
     event::{self, Event, KeyCode, KeyEvent},
     terminal::{disable_raw_mode, enable_raw_mode},
 };
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    process::exit,
+};
 
 mod commands;
 mod helper;
@@ -52,6 +55,11 @@ fn main() -> io::Result<()> {
                             println!("{}", out.trim_end_matches("\n"));
                         }
 
+                        if let Some(code) = output.exit_code {
+                            disable_raw_mode()?;
+                            exit(code)
+                        }
+
                         command.clear();
                         print!("\r$ ");
                         io::stdout().flush()?;
@@ -76,9 +84,6 @@ fn main() -> io::Result<()> {
             }
         }
     }
-
-    disable_raw_mode()?;
-    Ok(())
 }
 
 // fn main() -> Result<(), Box<dyn Error>> {
