@@ -1,6 +1,6 @@
 use std::{any::Any, env::current_dir, fmt::Display};
 
-use crate::commands::{Command, Factory};
+use crate::commands::{Command, Factory, Output};
 
 pub struct Pwd {}
 
@@ -17,14 +17,11 @@ impl Factory for Pwd {
 }
 
 impl Command for Pwd {
-    fn execute(&self) -> Result<Option<String>, String> {
-        let result = current_dir()
-            .map_err(|x| x.to_string())?
-            .to_str()
-            .unwrap_or("unknown wd")
-            .to_string();
-
-        Ok(Some(result))
+    fn execute(&self) -> Output {
+        match current_dir() {
+            Ok(res) => Output::ok(res.to_string_lossy().to_string()),
+            Err(err) => Output::err(err.to_string()),
+        }
     }
 
     fn as_any(&self) -> &dyn Any {

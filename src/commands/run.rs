@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    commands::{Command, Factory},
+    commands::{Command, Factory, Output},
     helper::search_path,
 };
 
@@ -32,42 +32,45 @@ impl Factory for Run {
 }
 
 impl Command for Run {
-    fn execute(&self) -> Result<Option<String>, String> {
-        if let Some(_) = search_path(&self.name) {
-            let process = process::Command::new(&self.name)
-                .args(&self.args)
-                .stdout(Stdio::piped()) // capture stdout
-                .stderr(Stdio::piped())
-                .spawn()
-                .map_err(|x| x.to_string())?;
-
-            let output = process.wait_with_output().map_err(|x| x.to_string())?;
-            if output.status.success() {
-                let result = format!(
-                    "{}",
-                    String::from_utf8(output.stdout)
-                        .map_err(|x| x.to_string())?
-                        .trim_end_matches('\n')
-                );
-
-                return Ok(Some(result));
-            } else {
-                let result = format!(
-                    "{}",
-                    String::from_utf8(output.stderr)
-                        .map_err(|x| x.to_string())?
-                        .trim_end_matches('\n')
-                );
-
-                return Err(result);
-            };
+    fn execute(&self) -> Output {
+        if search_path(&self.name).is_none() {
+            let result = format!("{}: command not found", self.name);
+            return Output::err(result);
         }
 
-        let result = format!("{}: command not found", self.name);
-        Err(result)
+        let process = process::Command::new(&self.name)
+            .args(&self.args)
+            .stdout(Stdio::piped()) // capture stdout
+            .stderr(Stdio::piped())
+            .spawn();
+
+        if let Err(err) = process {
+            return Output::err(err.to_string());
+        }
+
+        process
+            .unwrap()
+            .wait_with_output()
+            .map(|res| Output {
+                stdout: to_option(res.stdout),
+                stderr: to_option(res.stderr),
+            })
+            .unwrap_or_else(|err| Output::err(err.to_string()))
     }
 
     fn as_any(&self) -> &dyn Any {
         self
+    }
+}
+
+fn to_option(s: Vec<u8>) -> Option<String> {
+    let s = String::from_utf8_lossy(&s)
+        .trim_end_matches('\n')
+        .to_string();
+
+    if s.is_empty() {
+        None
+    } else {
+        Some(s)
     }
 }

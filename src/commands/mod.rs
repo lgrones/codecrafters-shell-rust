@@ -15,8 +15,36 @@ pub(crate) mod redirect;
 mod run;
 mod r#type;
 
+pub struct Output {
+    pub stdout: Option<String>,
+    pub stderr: Option<String>,
+}
+
+impl Output {
+    pub fn none() -> Self {
+        Output {
+            stdout: None,
+            stderr: None,
+        }
+    }
+
+    pub fn ok(msg: String) -> Self {
+        Output {
+            stdout: Some(msg.to_string()),
+            stderr: None,
+        }
+    }
+
+    pub fn err(msg: String) -> Self {
+        Output {
+            stdout: None,
+            stderr: Some(msg.to_string()),
+        }
+    }
+}
+
 pub trait Command: Display {
-    fn execute(&self) -> Result<Option<String>, String>;
+    fn execute(&self) -> Output;
     fn as_any(&self) -> &dyn Any;
 }
 

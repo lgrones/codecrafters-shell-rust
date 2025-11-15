@@ -1,6 +1,6 @@
 use std::{any::Any, fmt::Display, process::exit};
 
-use crate::commands::{Command, Factory};
+use crate::commands::{Command, Factory, Output};
 
 pub struct Exit {
     code: i32,
@@ -25,7 +25,7 @@ impl Factory for Exit {
 }
 
 impl Command for Exit {
-    fn execute(&self) -> Result<Option<String>, String> {
+    fn execute(&self) -> Output {
         exit(self.code)
     }
 

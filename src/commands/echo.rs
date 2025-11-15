@@ -1,6 +1,6 @@
 use std::{any::Any, fmt::Display};
 
-use crate::commands::{Command, Factory};
+use crate::commands::{Command, Factory, Output};
 
 pub struct Echo {
     args: String,
@@ -21,8 +21,8 @@ impl Factory for Echo {
 }
 
 impl Command for Echo {
-    fn execute(&self) -> Result<Option<String>, String> {
-        Ok(Some(self.args.clone()))
+    fn execute(&self) -> Output {
+        Output::ok(self.args.clone())
     }
 
     fn as_any(&self) -> &dyn Any {

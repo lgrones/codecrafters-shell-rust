@@ -5,7 +5,7 @@ use std::{
     path::PathBuf,
 };
 
-use crate::commands::{Command, Factory};
+use crate::commands::{Command, Factory, Output};
 
 pub struct Cd {
     path: String,
@@ -34,16 +34,18 @@ impl Factory for Cd {
 }
 
 impl Command for Cd {
-    fn execute(&self) -> Result<Option<String>, String> {
+    fn execute(&self) -> Output {
         let path_buf = PathBuf::from(&self.path);
 
         if self.path.is_empty() || !path_buf.is_dir() {
             let result = format!("cd: {}: No such file or directory", self.path);
-            return Ok(Some(result));
+            return Output::err(result);
         }
 
-        set_current_dir(path_buf).map_err(|x| x.to_string())?;
-        Ok(None)
+        match set_current_dir(path_buf) {
+            Ok(_) => Output::none(),
+            Err(err) => Output::err(err.to_string()),
+        }
     }
 
     fn as_any(&self) -> &dyn Any {

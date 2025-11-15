@@ -1,7 +1,7 @@
 use std::{any::Any, fmt::Display};
 
 use crate::{
-    commands::{create_command, run::Run, Command, Factory},
+    commands::{create_command, run::Run, Command, Factory, Output},
     helper::search_path,
 };
 
@@ -24,21 +24,21 @@ impl Factory for Type {
 }
 
 impl Command for Type {
-    fn execute(&self) -> Result<Option<String>, String> {
+    fn execute(&self) -> Output {
         let command = create_command(&self.name);
 
         if !command.as_any().is::<Run>() {
             let result = format!("{} is a shell builtin", self.name);
-            return Ok(Some(result));
+            return Output::ok(result);
         }
 
         if let Some(path) = search_path(&self.name) {
             let result = format!("{} is {}", self.name, path.to_string_lossy());
-            return Ok(Some(result));
+            return Output::ok(result);
         }
 
         let result = format!("{}: not found", self.name);
-        Ok(Some(result))
+        Output::err(result)
     }
 
     fn as_any(&self) -> &dyn Any {

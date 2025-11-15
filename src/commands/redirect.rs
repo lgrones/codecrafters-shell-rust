@@ -6,19 +6,12 @@ use std::{
     path::Path,
 };
 
-use crate::commands::Command;
+use crate::commands::{Command, Output};
 
-#[derive(PartialEq)]
 pub enum RedirectFrom {
     Stdout = 1,
     Stderr = 2,
 }
-
-// impl Display for RedirectFrom {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "{}", self.to_string())
-//     }
-// }
 
 impl RedirectFrom {
     pub fn from_digit(c: &char) -> Self {
@@ -56,34 +49,37 @@ impl Redirect {
 }
 
 impl Command for Redirect {
-    fn execute(&self) -> Result<Option<String>, String> {
-        let (redirect_from, output) = match self.command.execute() {
-            Ok(out) => (RedirectFrom::Stdout, out),
-            Err(err) => (RedirectFrom::Stderr, Some(err)),
+    fn execute(&self) -> Output {
+        let output = self.command.execute();
+
+        let (out, other) = match self.redirect_from {
+            RedirectFrom::Stdout => (output.stdout, output.stderr),
+            RedirectFrom::Stderr => (output.stderr, output.stdout),
         };
 
-        if redirect_from != self.redirect_from {
-            return match redirect_from {
-                RedirectFrom::Stdout => Ok(output),
-                RedirectFrom::Stderr => Err(output.unwrap_or_default()),
-            };
+        if let Some(content) = out {
+            return write_file(Path::new(&self.file), &content)
+                .map(|_| Output::none())
+                .unwrap_or_else(|e| Output::err(e.to_string()));
         }
 
-        if output.is_none() {
-            return Err(String::from("Cannot redirect empty output"));
+        if let Some(msg) = other {
+            return Output::ok(msg);
         }
 
-        let path = Path::new(&self.file);
-        create_dir_all(path.parent().unwrap_or(Path::new(""))).map_err(|x| x.to_string())?;
-
-        let mut file = File::create(path).map_err(|x| x.to_string())?;
-        file.write_all(output.unwrap().as_bytes())
-            .map_err(|x| x.to_string())?;
-
-        Ok(None)
+        Output::none()
     }
 
     fn as_any(&self) -> &dyn Any {
         self
     }
+}
+
+fn write_file(path: &Path, content: &str) -> std::io::Result<()> {
+    if let Some(parent) = path.parent() {
+        create_dir_all(parent)?;
+    }
+
+    File::create(path)?.write_all(content.as_bytes())?;
+    Ok(())
 }

@@ -14,9 +14,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         command.clear();
         io::stdin().read_line(&mut command)?;
 
-        let result = commands::create_command(&command).execute();
+        let output = commands::create_command(&command).execute();
 
-        if let Some(out) = result.unwrap_or_else(|x| Some(x)) {
+        if let Some(out) = output.stdout {
+            println!("{out}");
+        }
+
+        if let Some(out) = output.stderr {
             println!("{out}");
         }
     }
