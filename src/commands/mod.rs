@@ -20,6 +20,8 @@ mod r#type;
 pub struct Output {
     pub stdout: Option<String>,
     pub stderr: Option<String>,
+    pub exit_requested: bool,
+    pub exit_code: Option<i32>,
 }
 
 impl Output {
@@ -27,6 +29,8 @@ impl Output {
         Output {
             stdout: None,
             stderr: None,
+            exit_requested: false,
+            exit_code: None,
         }
     }
 
@@ -34,6 +38,8 @@ impl Output {
         Output {
             stdout: Some(msg.to_string()),
             stderr: None,
+            exit_requested: false,
+            exit_code: None,
         }
     }
 
@@ -41,6 +47,26 @@ impl Output {
         Output {
             stdout: None,
             stderr: Some(msg.to_string()),
+            exit_requested: false,
+            exit_code: None,
+        }
+    }
+
+    pub fn out(out: Option<String>, err: Option<String>) -> Self {
+        Output {
+            stdout: out,
+            stderr: err,
+            exit_requested: false,
+            exit_code: None,
+        }
+    }
+
+    pub fn exit(code: i32) -> Self {
+        Output {
+            stdout: None,
+            stderr: None,
+            exit_requested: true,
+            exit_code: Some(code),
         }
     }
 }
@@ -64,7 +90,7 @@ pub fn create_command(command: &str) -> Box<dyn Command> {
         "exit" => Box::new(Exit::new(args)),
         "pwd" => Box::new(Pwd::new(args)),
         "type" => Box::new(Type::new(args)),
-        _ => Box::new(Run::new(vec![name].into_iter().chain(args).collect())),
+        _ => Box::new(Run::new(name, args)),
     };
 
     match redirect {

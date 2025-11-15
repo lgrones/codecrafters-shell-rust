@@ -125,7 +125,7 @@ impl SplitArgs for &str {
 
 pub fn search_path(name: &str) -> Option<PathBuf> {
     env::var_os("PATH")
-        .into_iter() // Option<OsString> -> iterator with 0 or 1 element
+        .into_iter()
         .flat_map(|os| env::split_paths(&os).collect::<Vec<_>>())
         .find_map(|dir| {
             fs::read_dir(dir).ok().and_then(|entries| {

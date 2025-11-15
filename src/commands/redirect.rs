@@ -48,10 +48,10 @@ impl Command for Redirect {
                 .unwrap_or_default(),
         );
 
-        Output {
-            stdout: other,
-            stderr: result.map(|_| None).unwrap_or_else(|e| Some(e.to_string())),
-        }
+        Output::out(
+            other,
+            result.map(|_| None).unwrap_or_else(|e| Some(e.to_string())),
+        )
     }
 
     fn as_any(&self) -> &dyn Any {

@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    commands::{Command, Factory, Output},
+    commands::{Command, Output},
     helper::search_path,
 };
 
@@ -20,14 +20,9 @@ impl Display for Run {
     }
 }
 
-impl Factory for Run {
-    fn new(args: Vec<String>) -> impl Command {
-        let mut iter = args.into_iter();
-
-        Run {
-            name: iter.next().unwrap_or(String::from("empty")).to_owned(),
-            args: iter.collect(),
-        }
+impl Run {
+    pub fn new(name: String, args: Vec<String>) -> impl Command {
+        Run { name, args }
     }
 }
 
@@ -40,7 +35,7 @@ impl Command for Run {
 
         let process = process::Command::new(&self.name)
             .args(&self.args)
-            .stdout(Stdio::piped()) // capture stdout
+            .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn();
 
@@ -51,10 +46,7 @@ impl Command for Run {
         process
             .unwrap()
             .wait_with_output()
-            .map(|res| Output {
-                stdout: to_option(res.stdout),
-                stderr: to_option(res.stderr),
-            })
+            .map(|res| Output::out(to_option(res.stdout), to_option(res.stderr)))
             .unwrap_or_else(|err| Output::err(err.to_string()))
     }
 
