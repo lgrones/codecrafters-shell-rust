@@ -31,7 +31,7 @@ fn main() -> io::Result<()> {
                     KeyCode::Tab => {
                         if let Some(candidate) = commands::autocomplete(&command) {
                             print!("\x1b[2K\r$ {candidate} ");
-                            command = String::from(candidate);
+                            command = String::from(candidate) + " ";
                             io::stdout().flush()?;
                         }
                     }
