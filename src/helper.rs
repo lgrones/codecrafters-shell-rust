@@ -124,6 +124,8 @@ impl SplitArgs for &str {
     }
 }
 
+pub static HISTORY: Lazy<Mutex<Vec<String>>> = Lazy::new(|| Mutex::new(vec![]));
+
 pub static PATHS: Lazy<Mutex<Vec<(String, PathBuf)>>> = Lazy::new(|| Mutex::new(vec![]));
 
 pub fn search_path(name: &str) -> Option<PathBuf> {

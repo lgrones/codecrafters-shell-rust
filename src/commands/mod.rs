@@ -2,16 +2,17 @@ use std::{any::Any, collections::HashSet, fmt::Display};
 
 use crate::{
     commands::{
-        append::Append, cd::Cd, echo::Echo, exit::Exit, output::Output, pwd::Pwd, r#type::Type,
-        redirect::Redirect, run::Run,
+        append::Append, cd::Cd, echo::Echo, exit::Exit, history::History, output::Output, pwd::Pwd,
+        r#type::Type, redirect::Redirect, run::Run,
     },
-    helper::{get_redirects, Params, RedirectType, SplitArgs, PATHS},
+    helper::{get_redirects, Params, RedirectType, SplitArgs, HISTORY, PATHS},
 };
 
 mod append;
 mod cd;
 mod echo;
 mod exit;
+mod history;
 mod output;
 mod pwd;
 mod redirect;
@@ -31,11 +32,14 @@ const COMMANDS: &[(&str, fn(Vec<String>) -> Box<dyn Command>)] = &[
     ("cd", |args| Box::new(Cd::new(args))),
     ("echo", |args| Box::new(Echo::new(args))),
     ("exit", |args| Box::new(Exit::new(args))),
+    ("history", |args| Box::new(History::new(args))),
     ("pwd", |args| Box::new(Pwd::new(args))),
     ("type", |args| Box::new(Type::new(args))),
 ];
 
 pub fn create_command(command: &str) -> Box<dyn Command> {
+    HISTORY.lock().unwrap().push(command.to_string());
+
     let Params { name, mut args } = command.get_args();
     let redirect = get_redirects(&mut args);
 
