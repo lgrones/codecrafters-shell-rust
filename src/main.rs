@@ -17,6 +17,7 @@ fn main() -> io::Result<()> {
     enable_raw_mode()?;
 
     let mut command = String::new();
+    let mut completing = false;
 
     print!("$ ");
     io::stdout().flush()?;
@@ -32,13 +33,31 @@ fn main() -> io::Result<()> {
 
                 Event::Key(KeyEvent { code, .. }) => match code {
                     KeyCode::Tab => {
-                        if let Some(candidate) = commands::autocomplete(&command) {
-                            command = candidate + " ";
+                        let candidates = commands::autocomplete(&command);
+
+                        if candidates.is_empty() {
+                            print!("\x07");
+                            io::stdout().flush()?;
+                            continue;
+                        }
+
+                        if candidates.len() == 1 {
+                            command = candidates[0].clone() + " ";
                             print!("\x1b[2K\r$ {command}");
                             io::stdout().flush()?;
                             continue;
                         }
 
+                        if completing {
+                            completing = false;
+                            command.clear();
+                            println!("\r\n{}", candidates.join("  "));
+                            print!("\r$ ");
+                            io::stdout().flush()?;
+                            continue;
+                        }
+
+                        completing = true;
                         print!("\x07");
                         io::stdout().flush()?;
                     }
@@ -72,18 +91,21 @@ fn main() -> io::Result<()> {
                             exit(code)
                         }
 
+                        completing = false;
                         command.clear();
                         print!("\r$ ");
                         io::stdout().flush()?;
                     }
 
                     KeyCode::Char(c) => {
+                        completing = false;
                         command.push(c);
                         print!("{}", c);
                         io::stdout().flush()?;
                     }
 
                     KeyCode::Backspace => {
+                        completing = false;
                         if !command.is_empty() {
                             command.pop();
                             print!("\x08 \x08");

@@ -56,8 +56,8 @@ pub fn create_command(command: &str) -> Box<dyn Command> {
     }
 }
 
-pub fn autocomplete(prefix: &str) -> Option<String> {
-    let builtin = COMMANDS.iter().map(|(cmd, _)| *cmd).find_map(|cmd| {
+pub fn autocomplete(prefix: &str) -> Vec<String> {
+    let commands = COMMANDS.iter().map(|(cmd, _)| *cmd).filter_map(|cmd| {
         if cmd.starts_with(prefix) {
             Some(cmd.to_string())
         } else {
@@ -65,20 +65,14 @@ pub fn autocomplete(prefix: &str) -> Option<String> {
         }
     });
 
-    if builtin.is_some() {
-        return builtin;
-    }
+    let binding = PATHS.lock().unwrap();
+    let paths = binding.iter().map(|(cmd, _)| cmd).filter_map(|cmd| {
+        if cmd.starts_with(prefix) {
+            Some(cmd.to_string())
+        } else {
+            None
+        }
+    });
 
-    PATHS
-        .lock()
-        .unwrap()
-        .iter()
-        .map(|(cmd, _)| cmd)
-        .find_map(|cmd| {
-            if cmd.starts_with(prefix) {
-                Some(cmd.to_string())
-            } else {
-                None
-            }
-        })
+    commands.chain(paths).collect()
 }
