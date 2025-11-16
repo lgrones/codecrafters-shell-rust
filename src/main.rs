@@ -7,10 +7,13 @@ use std::{
     process::exit,
 };
 
+use crate::helper::precompute_path;
+
 mod commands;
 mod helper;
 
 fn main() -> io::Result<()> {
+    precompute_path();
     enable_raw_mode()?;
 
     let mut command = String::new();
@@ -30,7 +33,7 @@ fn main() -> io::Result<()> {
                 Event::Key(KeyEvent { code, .. }) => match code {
                     KeyCode::Tab => {
                         if let Some(candidate) = commands::autocomplete(&command) {
-                            command = String::from(candidate) + " ";
+                            command = candidate + " ";
                             print!("\x1b[2K\r$ {command}");
                             io::stdout().flush()?;
                             continue;

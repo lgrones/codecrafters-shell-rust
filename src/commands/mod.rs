@@ -5,7 +5,7 @@ use crate::{
         append::Append, cd::Cd, echo::Echo, exit::Exit, output::Output, pwd::Pwd, r#type::Type,
         redirect::Redirect, run::Run,
     },
-    helper::{get_redirects, Params, RedirectType, SplitArgs},
+    helper::{get_redirects, Params, RedirectType, SplitArgs, PATHS},
 };
 
 mod append;
@@ -56,12 +56,29 @@ pub fn create_command(command: &str) -> Box<dyn Command> {
     }
 }
 
-pub fn autocomplete(prefix: &str) -> Option<&str> {
-    COMMANDS.iter().map(|(cmd, _)| *cmd).find_map(|cmd| {
+pub fn autocomplete(prefix: &str) -> Option<String> {
+    let builtin = COMMANDS.iter().map(|(cmd, _)| *cmd).find_map(|cmd| {
         if cmd.starts_with(prefix) {
-            Some(cmd)
+            Some(cmd.to_string())
         } else {
             None
         }
-    })
+    });
+
+    if builtin.is_some() {
+        return builtin;
+    }
+
+    PATHS
+        .lock()
+        .unwrap()
+        .iter()
+        .map(|(cmd, _)| cmd)
+        .find_map(|cmd| {
+            if cmd.starts_with(prefix) {
+                Some(cmd.to_string())
+            } else {
+                None
+            }
+        })
 }
