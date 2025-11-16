@@ -108,7 +108,11 @@ fn write_history(path: &PathBuf) -> Output {
         }
     }
 
-    let result = File::options().write(true).truncate(true).open(path);
+    let result = File::options()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(path);
 
     if let Err(err) = result {
         return Output::err(err.to_string());
