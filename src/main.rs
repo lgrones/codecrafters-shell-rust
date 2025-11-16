@@ -42,7 +42,7 @@ fn main() -> io::Result<()> {
                         }
 
                         if candidates.len() == 1 {
-                            command = candidates[0].clone() + " ";
+                            command = candidates[0].clone();
                             print!("\x1b[2K\r$ {command}");
                             io::stdout().flush()?;
                             continue;

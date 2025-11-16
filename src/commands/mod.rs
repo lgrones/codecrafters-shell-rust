@@ -80,7 +80,39 @@ pub fn autocomplete(prefix: &str) -> Vec<String> {
         .into_iter()
         .collect();
 
+    if result.len() == 1 {
+        return result.iter().map(|x| x.to_string() + " ").collect();
+    }
+
+    if let Some(res) = longest_common_prefix(&mut result) {
+        if res != prefix {
+            result = vec![res];
+        }
+    }
+
     result.sort();
 
     result
+}
+
+fn longest_common_prefix(commands: &mut Vec<String>) -> Option<String> {
+    if commands.is_empty() {
+        return None;
+    }
+
+    commands.sort_unstable_by(|a, b| b.len().cmp(&a.len()));
+
+    let mut prefix = commands[0].to_string();
+
+    for command in commands.iter() {
+        while !command.starts_with(&prefix) {
+            if prefix.is_empty() {
+                return None;
+            }
+
+            prefix.pop();
+        }
+    }
+
+    Some(prefix)
 }
