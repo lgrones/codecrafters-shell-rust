@@ -154,6 +154,4 @@ pub fn precompute_path() {
                 });
         }
     }
-
-    PATHS.lock().unwrap().sort();
 }

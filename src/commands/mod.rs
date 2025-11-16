@@ -74,9 +74,13 @@ pub fn autocomplete(prefix: &str) -> Vec<String> {
         }
     });
 
-    commands
+    let mut result: Vec<String> = commands
         .chain(paths)
         .collect::<HashSet<_>>()
         .into_iter()
-        .collect()
+        .collect();
+
+    result.sort();
+
+    result
 }
