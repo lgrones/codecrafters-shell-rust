@@ -30,10 +30,14 @@ fn main() -> io::Result<()> {
                 Event::Key(KeyEvent { code, .. }) => match code {
                     KeyCode::Tab => {
                         if let Some(candidate) = commands::autocomplete(&command) {
-                            print!("\x1b[2K\r$ {candidate} ");
                             command = String::from(candidate) + " ";
+                            print!("\x1b[2K\r$ {command}");
                             io::stdout().flush()?;
+                            continue;
                         }
+
+                        print!("\x07");
+                        io::stdout().flush()?;
                     }
 
                     KeyCode::Up => {
