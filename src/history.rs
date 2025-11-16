@@ -1,6 +1,6 @@
 use std::{
     env,
-    fs::File,
+    fs::{create_dir_all, File},
     io::{self, ErrorKind, Read, Write},
     path::PathBuf,
     sync::Mutex,
@@ -102,6 +102,12 @@ fn read_history(path: &PathBuf) -> Output {
 }
 
 fn write_history(path: &PathBuf) -> Output {
+    if let Some(parent) = path.parent() {
+        if let Err(err) = create_dir_all(parent) {
+            return Output::err(err.to_string());
+        }
+    }
+
     let result = File::options().write(true).truncate(true).open(path);
 
     if let Err(err) = result {
