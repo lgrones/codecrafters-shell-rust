@@ -12,6 +12,7 @@ use crate::output::Output;
 
 static HISTORY: Lazy<Mutex<Vec<String>>> = Lazy::new(|| Mutex::new(vec![]));
 static HISTORY_POINTER: Lazy<Mutex<usize>> = Lazy::new(|| Mutex::new(0));
+static NEW_HISTORY_POINTER: Lazy<Mutex<usize>> = Lazy::new(|| Mutex::new(0));
 
 #[derive(PartialEq)]
 pub enum HistoryFlag {
@@ -97,6 +98,7 @@ fn read_history(path: &PathBuf) -> Output {
     let mut history = HISTORY.lock().unwrap();
     history.extend(commands);
     *HISTORY_POINTER.lock().unwrap() = history.len();
+    *NEW_HISTORY_POINTER.lock().unwrap() = history.len();
 
     Output::none()
 }
@@ -118,7 +120,9 @@ fn write_history(path: &PathBuf) -> Output {
         return Output::err(err.to_string());
     }
 
-    let content = HISTORY.lock().unwrap().join("\n") + "\n";
+    let history = HISTORY.lock().unwrap();
+    let content = history.join("\n") + "\n";
+    *NEW_HISTORY_POINTER.lock().unwrap() = history.len();
 
     match result.unwrap().write_all(content.as_bytes()) {
         Ok(_) => Output::none(),
@@ -133,7 +137,17 @@ fn append_history(path: &PathBuf) -> Output {
         return Output::err(err.to_string());
     }
 
-    let content = HISTORY.lock().unwrap().join("\n") + "\n";
+    let history = HISTORY.lock().unwrap();
+    let mut new_history = *NEW_HISTORY_POINTER.lock().unwrap();
+    let content = history
+        .iter()
+        .skip(new_history)
+        .map(|x| x.to_string())
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\n";
+
+    new_history = history.len();
 
     match result.unwrap().write_all(content.as_bytes()) {
         Ok(_) => Output::none(),
