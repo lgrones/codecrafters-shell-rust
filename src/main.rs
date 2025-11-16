@@ -7,13 +7,19 @@ use std::{
     process::exit,
 };
 
-use crate::helper::{next_history, precompute_path, prev_history};
+use crate::history::{load_history, next_history, prev_history, save_history};
+use crate::paths::precompute_path;
 
+mod args;
 mod commands;
-mod helper;
+mod history;
+mod output;
+mod paths;
+mod redirects;
 
 fn main() -> io::Result<()> {
     precompute_path();
+    load_history()?;
     enable_raw_mode()?;
 
     let mut command = String::new();
@@ -93,6 +99,7 @@ fn main() -> io::Result<()> {
 
                         if let Some(code) = output.exit_code {
                             disable_raw_mode()?;
+                            save_history()?;
                             exit(code)
                         }
 

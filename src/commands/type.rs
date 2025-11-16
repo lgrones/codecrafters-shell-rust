@@ -2,7 +2,7 @@ use std::{any::Any, fmt::Display};
 
 use crate::{
     commands::{create_command, run::Run, Command, Factory, Output},
-    helper::search_path,
+    paths::search_path,
 };
 
 pub struct Type {

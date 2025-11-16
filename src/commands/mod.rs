@@ -1,11 +1,15 @@
 use std::{any::Any, collections::HashSet, fmt::Display};
 
 use crate::{
+    args::{Params, SplitArgs},
     commands::{
-        append::Append, cd::Cd, echo::Echo, exit::Exit, history::History, output::Output, pwd::Pwd,
-        r#type::Type, redirect::Redirect, run::Run,
+        append::Append, cd::Cd, echo::Echo, exit::Exit, history::History, pwd::Pwd, r#type::Type,
+        redirect::Redirect, run::Run,
     },
-    helper::{get_redirects, push_history, Params, RedirectType, SplitArgs, PATHS},
+    history::push_history,
+    output::Output,
+    paths::PATHS,
+    redirects::{get_redirects, RedirectType},
 };
 
 mod append;
@@ -13,7 +17,6 @@ mod cd;
 mod echo;
 mod exit;
 mod history;
-mod output;
 mod pwd;
 mod redirect;
 mod run;

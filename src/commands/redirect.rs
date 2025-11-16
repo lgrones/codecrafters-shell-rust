@@ -8,7 +8,7 @@ use std::{
 
 use crate::{
     commands::{Command, Output},
-    helper::CaptureFrom,
+    redirects::CaptureFrom,
 };
 
 pub struct Redirect {

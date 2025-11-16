@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     commands::{Command, Output},
-    helper::search_path,
+    paths::search_path,
 };
 
 pub struct Run {
