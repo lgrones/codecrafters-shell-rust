@@ -162,7 +162,7 @@ pub fn next_history() -> Option<String> {
     let history = HISTORY.lock().unwrap();
     let mut pointer = HISTORY_POINTER.lock().unwrap();
 
-    if *pointer == history.len() {
+    if *pointer >= history.len() - 1 {
         return None;
     }
 

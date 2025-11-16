@@ -64,7 +64,7 @@ fn main() -> io::Result<()> {
                     KeyCode::Up => {
                         if let Some(hist_command) = prev_history() {
                             command = hist_command;
-                            print!("\r$ {command}");
+                            print!("\x1b[2K\r$ {command}");
                             io::stdout().flush()?;
                         }
                     }
@@ -72,7 +72,7 @@ fn main() -> io::Result<()> {
                     KeyCode::Down => {
                         if let Some(hist_command) = next_history() {
                             command = hist_command;
-                            print!("\r$ {command}");
+                            print!("\x1b[2K\r$ {command}");
                             io::stdout().flush()?;
                         }
                     }
