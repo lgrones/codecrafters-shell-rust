@@ -30,9 +30,9 @@ impl Command for History {
             .iter()
             .rev()
             .take(self.entries.unwrap_or(history.len()))
-            .rev()
             .enumerate()
-            .map(|(index, command)| format!("    {}  {command}\r\n", index + 1))
+            .map(|(index, command)| format!("    {}  {command}\r\n", history.len() - index))
+            .rev()
             .collect::<Vec<_>>()
             .join("");
 
