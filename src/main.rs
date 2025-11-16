@@ -7,7 +7,7 @@ use std::{
     process::exit,
 };
 
-use crate::helper::precompute_path;
+use crate::helper::{next_history, precompute_path, prev_history};
 
 mod commands;
 mod helper;
@@ -62,13 +62,19 @@ fn main() -> io::Result<()> {
                     }
 
                     KeyCode::Up => {
-                        println!("\r\n[Up triggered for: '{}']\r\n", command);
-                        io::stdout().flush()?;
+                        if let Some(hist_command) = prev_history() {
+                            command = hist_command;
+                            print!("\r$ {command}");
+                            io::stdout().flush()?;
+                        }
                     }
 
                     KeyCode::Down => {
-                        println!("\r\n[Down triggered for: '{}']\r\n", command);
-                        io::stdout().flush()?;
+                        if let Some(hist_command) = next_history() {
+                            command = hist_command;
+                            print!("\r$ {command}");
+                            io::stdout().flush()?;
+                        }
                     }
 
                     // for some reason code crafter uses j as enter, so yeah, fun debugging

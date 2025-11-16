@@ -2,7 +2,7 @@ use std::{any::Any, fmt::Display};
 
 use crate::{
     commands::{Command, Factory, Output},
-    helper::HISTORY,
+    helper::get_history,
 };
 
 pub struct History {
@@ -25,13 +25,12 @@ impl Factory for History {
 
 impl Command for History {
     fn execute(&self) -> Output {
-        let history = HISTORY.lock().unwrap();
+        let (length, history) = get_history(self.entries);
+
         let commands = history
             .iter()
-            .rev()
-            .take(self.entries.unwrap_or(history.len()))
             .enumerate()
-            .map(|(index, command)| format!("    {}  {command}\r\n", history.len() - index))
+            .map(|(index, command)| format!("    {}  {command}\r\n", length - index))
             .rev()
             .collect::<Vec<_>>()
             .join("");

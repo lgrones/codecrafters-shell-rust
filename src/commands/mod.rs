@@ -5,7 +5,7 @@ use crate::{
         append::Append, cd::Cd, echo::Echo, exit::Exit, history::History, output::Output, pwd::Pwd,
         r#type::Type, redirect::Redirect, run::Run,
     },
-    helper::{get_redirects, Params, RedirectType, SplitArgs, HISTORY, PATHS},
+    helper::{get_redirects, push_history, Params, RedirectType, SplitArgs, PATHS},
 };
 
 mod append;
@@ -38,7 +38,7 @@ const COMMANDS: &[(&str, fn(Vec<String>) -> Box<dyn Command>)] = &[
 ];
 
 pub fn create_command(command: &str) -> Box<dyn Command> {
-    HISTORY.lock().unwrap().push(command.to_string());
+    push_history(command.to_string());
 
     let Params { name, mut args } = command.get_args();
     let redirect = get_redirects(&mut args);

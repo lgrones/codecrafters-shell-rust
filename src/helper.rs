@@ -124,7 +124,51 @@ impl SplitArgs for &str {
     }
 }
 
-pub static HISTORY: Lazy<Mutex<Vec<String>>> = Lazy::new(|| Mutex::new(vec![]));
+static HISTORY: Lazy<Mutex<Vec<String>>> = Lazy::new(|| Mutex::new(vec![]));
+static HISTORY_POINTER: Lazy<Mutex<usize>> = Lazy::new(|| Mutex::new(0));
+
+pub fn get_history(n: Option<usize>) -> (usize, Vec<String>) {
+    let history = HISTORY.lock().unwrap();
+
+    (
+        history.len(),
+        history
+            .iter()
+            .rev()
+            .take(n.unwrap_or(history.len()))
+            .map(|x| x.to_string())
+            .collect(),
+    )
+}
+
+pub fn push_history(command: String) {
+    let mut history = HISTORY.lock().unwrap();
+    history.push(command.to_string());
+    *HISTORY_POINTER.lock().unwrap() = history.len();
+}
+
+pub fn prev_history() -> Option<String> {
+    let mut pointer = HISTORY_POINTER.lock().unwrap();
+
+    if *pointer == 0 {
+        return None;
+    }
+
+    *pointer -= 1;
+    HISTORY.lock().unwrap().get(*pointer).map(|x| x.to_string())
+}
+
+pub fn next_history() -> Option<String> {
+    let history = HISTORY.lock().unwrap();
+    let mut pointer = HISTORY_POINTER.lock().unwrap();
+
+    if *pointer == history.len() {
+        return None;
+    }
+
+    *pointer += 1;
+    history.get(*pointer).map(|x| x.to_string())
+}
 
 pub static PATHS: Lazy<Mutex<Vec<(String, PathBuf)>>> = Lazy::new(|| Mutex::new(vec![]));
 
