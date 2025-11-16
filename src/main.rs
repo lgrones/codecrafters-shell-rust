@@ -46,17 +46,18 @@ fn main() -> io::Result<()> {
                         io::stdout().flush()?;
                     }
 
-                    KeyCode::Enter => {
+                    // for some reason code crafter uses j as enter, so yeah, fun debugging
+                    KeyCode::Enter | KeyCode::Char('j') => {
                         print!("\r\n");
 
                         let output = commands::create_command(&command).execute();
 
                         if let Some(out) = output.stdout {
-                            println!("{}", out.trim_end_matches("\n"));
+                            println!("{}", out.trim_end_matches("\n").replace("\n", "\r\n"));
                         }
 
                         if let Some(out) = output.stderr {
-                            println!("{}", out.trim_end_matches("\n"));
+                            println!("{}", out.trim_end_matches("\n").replace("\n", "\r\n"));
                         }
 
                         if let Some(code) = output.exit_code {
@@ -108,6 +109,10 @@ fn main() -> io::Result<()> {
 
 //         if let Some(out) = output.stderr {
 //             println!("{}", out.trim_end_matches("\n"));
+//         }
+
+//         if let Some(code) = output.exit_code {
+//             exit(code)
 //         }
 //     }
 // }
