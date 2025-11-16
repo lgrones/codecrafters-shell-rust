@@ -29,7 +29,11 @@ fn main() -> io::Result<()> {
 
                 Event::Key(KeyEvent { code, .. }) => match code {
                     KeyCode::Tab => {
-                        println!("\r\n[Tab completion triggered for: '{}']\r\n", command);
+                        if let Some(candidate) = commands::autocomplete(&command) {
+                            print!("\x1b[2K\r$ {candidate}");
+                            command = String::from(candidate);
+                            io::stdout().flush()?;
+                        }
                     }
 
                     KeyCode::Up => {
