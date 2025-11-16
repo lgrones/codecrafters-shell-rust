@@ -50,9 +50,8 @@ fn main() -> io::Result<()> {
 
                         if completing {
                             completing = false;
-                            command.clear();
                             println!("\r\n{}", candidates.join("  "));
-                            print!("\r$ ");
+                            print!("\r$ {command}");
                             io::stdout().flush()?;
                             continue;
                         }
