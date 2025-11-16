@@ -1,4 +1,4 @@
-use std::{any::Any, fmt::Display};
+use std::{any::Any, collections::HashSet, fmt::Display};
 
 use crate::{
     commands::{
@@ -74,5 +74,9 @@ pub fn autocomplete(prefix: &str) -> Vec<String> {
         }
     });
 
-    commands.chain(paths).collect()
+    commands
+        .chain(paths)
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect()
 }
