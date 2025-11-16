@@ -138,16 +138,16 @@ fn append_history(path: &PathBuf) -> Output {
     }
 
     let history = HISTORY.lock().unwrap();
-    let mut new_history = *NEW_HISTORY_POINTER.lock().unwrap();
+    let mut new_history = NEW_HISTORY_POINTER.lock().unwrap();
     let content = history
         .iter()
-        .skip(new_history)
+        .skip(*new_history)
         .map(|x| x.to_string())
         .collect::<Vec<_>>()
         .join("\n")
         + "\n";
 
-    new_history = history.len();
+    *new_history = history.len();
 
     match result.unwrap().write_all(content.as_bytes()) {
         Ok(_) => Output::none(),
